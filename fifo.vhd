@@ -54,123 +54,119 @@ begin
 -- Processes and Logic
 ----------------------------------------------------------------------------
 
-synchronous : process(clk_i)
+--fifo : process(clk_i)
+--begin
+--    if rising_edge(clk_i) then
+        
+--        if reset_i = '1' then
+--            read_pointer <= 0;
+--            write_pointer <= 0;
+--            data_count <= 0;
+--        end if;
+        
+--        -- Data Counter
+--        if wr_en_i = '1' AND full = '0' then
+--            data_count <= data_count + 1;
+--        end if ;
+        
+--        if rd_en_i = '1' AND empty = '0' then
+--            data_count <= data_count - 1;
+--        end if;
+        
+--        -- Write Counter and Roll over
+--        if wr_en_i = '1' AND full = '0' then
+--            if write_pointer = FIFO_DEPTH-1 then
+--                write_pointer <= 0;
+--            else
+--                write_pointer <= write_pointer + 1;
+--            end if;
+--        end if;
+                
+--        -- Read Counter and Roll over
+--        if rd_en_i = '1' AND empty = '0' then
+--            if read_pointer = FIFO_DEPTH-1 then
+--                read_pointer <= 0;
+--            else
+--                read_pointer <= read_pointer + 1;
+--            end if;
+--        end if;
+        
+--        -- Writes data
+--        if wr_en_i = '1' then
+--            fifo_buf(write_pointer) <= wr_data_i;
+--        end if;
+        
+--        if rd_en_i = '1'then
+--            rd_data_o <= fifo_buf(read_pointer);
+--        end if;
+    
+--    end if;
+--end process fifo;
+    
+full <= '1' when data_count = FIFO_DEPTH else '0';
+
+empty <= '1' when data_count = 0 else '0';
+
+empty_o <= empty;
+full_o <= full;
+
+write_data : process(clk_i)
 begin
     if rising_edge(clk_i) then
-        
-        if reset_i = '1' then
-            read_pointer <= 0;
-            write_pointer <= 0;
-        end if;
-        
-        if full = '1' then
-            write_pointer <= 0;
-        end if;
-        
-        if empty = '1' then
-            read_pointer <= 0;
-        end if;
-        
-        if wr_en_i = '1' AND full = '0' then
-            write_pointer <= write_pointer + 1;
-            data_count <= data_count + 1;
-        end if;
-    
-        if rd_en_i = '1' AND empty = '0' then
-            read_pointer <= read_pointer + 1;
-            data_count <= data_count - 1;
-        end if;
-        
         if wr_en_i = '1' AND full = '0' then
             fifo_buf(write_pointer) <= wr_data_i;
         end if;
-        
+    end if;
+end process write_data;
+
+read_data : process(clk_i)
+begin
+    if rising_edge(clk_i) then
         if rd_en_i = '1' AND empty = '0' then
             rd_data_o <= fifo_buf(read_pointer);
         end if;
-    
     end if;
-end process synchronous;
-
-asynchronous : process
+end process read_data;
+        
+write_counter : process(clk_i)
 begin
-    empty_o <= empty;
-    full_o <= full;
-    
-    if data_count = FIFO_DEPTH then
-        full <= '1';
+    if rising_edge(clk_i) then
+        if reset_i = '1' OR write_pointer = FIFO_DEPTH-1 then
+            write_pointer <= 0;
+        elsif wr_en_i = '1' AND full = '0' then
+            write_pointer <= write_pointer + 1;
+        end if;
     end if;
-    
-    if data_count = 0 then
-        empty <= '1';
+end process write_counter;
+
+read_counter : process(clk_i)
+begin
+    if rising_edge(clk_i) then
+        if reset_i = '1' OR read_pointer = FIFO_DEPTH-1 then
+            read_pointer <= 0;
+        elsif rd_en_i = '1' AND empty = '0' then
+            read_pointer <= read_pointer + 1;
+        end if;
     end if;
-    
-end process asynchronous;
+end process read_counter;
 
---write_data : process(clk_i)
---begin
---    if rising_edge(clk_i) then
---        if wr_en_i = '1' AND data_count < FIFO_DEPTH then
---            fifo_buf(write_pointer-1) <= wr_data_i;
---        end if;
---    end if;
---end process write_data;
-
---read_data : process(clk_i)
---begin
---    if rising_edge(clk_i) then
---        if rd_en_i = '1' AND data_count > 0 then
---            rd_data_o <= fifo_buf(read_pointer-1);
---        end if;
---    end if;
---end process read_data;
-        
---write_counter : process(clk_i, wr_en_i)
---begin
---    if rising_edge(clk_i) then
---        if reset_i = '1' OR write_pointer = FIFO_DEPTH then
---            write_pointer <= 1;
---        elsif wr_en_i = '1' and data_count < FIFO_DEPTH then
---            write_pointer <= write_pointer + 1;
---        end if;
---    end if;
---end process write_counter;
-
---read_counter : process(clk_i, rd_en_i)
---begin
---    if rising_edge(clk_i) then
---        if reset_i = '1' OR read_pointer = FIFO_DEPTH then
---            read_pointer <= 1;
---        elsif rd_en_i = '1' AND data_count > 0 then
---            read_pointer <= read_pointer + 1;
---        end if;
---    end if;
---end process read_counter;
-
---data_counter : process(clk_i, wr_en_i, rd_en_i)
---begin
---    if rising_edge(clk_i) then
---        empty_o <= '0';
---        full_o <= '0';
---        if reset_i = '0' then
---            if wr_en_i = '1' and data_count < FIFO_DEPTH then 
---                data_count <= data_count + 1;
---            end if;
-        
---            if rd_en_i = '1' and data_count > 0 then
---                data_count <= data_count - 1;
---            end if;
-            
---            if data_count = FIFO_DEPTH then
---                full_o <= '1';
---            elsif data_count = 0 then
---                empty_o <= '1';
---            end if;
---        else
---            data_count <= 0;
---            empty_o <= '1';
---        end if;
---    end if;
---end process data_counter;
+data_counter : process(clk_i)
+begin
+    if rising_edge(clk_i) then
+        if reset_i = '0' then
+            if wr_en_i = '1' AND rd_en_i = '1' then
+                data_count <= data_count;
+                
+            elsif wr_en_i = '1' AND full = '0' then 
+                data_count <= data_count + 1;
+                
+            elsif rd_en_i = '1' AND empty = '0' then
+                data_count <= data_count - 1;
+            end if;
+        else
+            data_count <= 0;
+        end if;
+    end if;
+end process data_counter;
 
 end Behavioral;
