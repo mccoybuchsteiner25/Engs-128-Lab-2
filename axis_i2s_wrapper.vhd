@@ -70,33 +70,14 @@ end axis_i2s_wrapper;
 architecture Behavioral of axis_i2s_wrapper is
 ----------------------------------------------------------------------------
 -- Define Constants and Signals
-----------------------------------------------------------------------------
-constant AXI_DATA_WIDTH : integer := 32;        
-constant AXI_FIFO_DEPTH : integer := 12;        
-constant AC_DATA_WIDTH : integer := 24;       
-
-signal fifo_0_axis_data_out : std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-signal fifo_0_axis_data_out_valid, fifo_0_axis_data_in_valid : std_logic := '0';
-signal fifo_0_axis_data_out_last, fifo_0_axis_data_in_last : std_logic := '0';
-signal fifo_0_axis_ready : std_logic := '0';
-
-signal fifo_1_axis_data_out : std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-signal fifo_1_axis_data_out_valid : std_logic := '0';
-signal fifo_1_axis_data_out_last : std_logic := '0';
-signal fifo_1_axis_ready : std_logic := '0';
-
+----------------------------------------------------------------------------     
 signal mclk_s		      : std_logic := '0';	
 signal bclk_s            : std_logic := '0';
 signal lrclk_s           : std_logic := '0';
-
 signal left_audio_data_tx_s : std_logic_vector(AC_DATA_WIDTH-1 downto 0) := (others => '0');
 signal right_audio_data_tx_s : std_logic_vector(AC_DATA_WIDTH-1 downto 0) := (others => '0');
-        
---receiver outputs 
 signal left_audio_data_s : std_logic_vector(AC_DATA_WIDTH-1 downto 0) := (others => '0');
 signal right_audio_data_s : std_logic_vector(AC_DATA_WIDTH-1 downto 0) := (others => '0');
-        
---mute signals
 signal ac_mute_n_s : std_logic := '0';
 signal ac_mute_n_reg_s : std_logic := '0';
 
